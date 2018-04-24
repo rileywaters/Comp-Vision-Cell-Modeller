@@ -1,13 +1,13 @@
 % Author: Riley Waters
-% Date: 2017-04-18
+% Date: 2018-04-18
 %shows an interactive matrix of adhesion ponit locations
 
 %centersAll - 3d matrix of point locations by framenumber.
 
 function showMap(centersAll)
 
-    if nargin > 2
-        error('myfuns:somefun2:TooManyInputs', 'requires at most 2 inputs');
+    if nargin > 1
+        error('myfuns:somefun2:TooManyInputs', 'requires at most 1 input');
     end
     
     ii = length(centersAll(1,1,:));

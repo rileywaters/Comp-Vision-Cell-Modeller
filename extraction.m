@@ -6,6 +6,8 @@
 %videoName - Name of the initial video
 %centersNum - Number of adhesion points on cell to look for
 %iterate - (optional) set manually the number of frames to process
+%boolSave - (optional) 'y' if program should save processed images
+%boolVid - (optional) 'y' if program should construct video. Needs boolSave
 %diskR - (optional) Preprocessing disk radius
 %diskN - (optional) Preprocessing number of lines to approximate disk
 %houghSmall - (optional) minimum radius to search for circles
@@ -14,16 +16,16 @@
 %houghEdge - (optional) edge threshold value of hough transform
 %overlapOpt - (optional) select which type of overlap removal should occur
 %overlapAmount - (optional) select how much a spot overlaps before handling
-%boolSave - (optional) 'y' if program should save processed images
-%boolVid - (optional) 'y' if program should construct video. Needs boolSave
 
-function centersAll = extraction(videoName, centersNum, iterate, diskR, diskN, houghSmall, houghLarge, houghSens, houghEdge, overlapOpt, overlapAmount, boolSave, boolVid)
+
+function centersAll = extraction(videoName, centersNum, iterate, boolSave, boolVid, diskR, diskN, houghSmall, houghLarge, houghSens, houghEdge, overlapOpt, overlapAmount)
 	
     if nargin > 13
         error('myfuns:somefun2:TooManyInputs', 'requires at most 13 inputs');
     end
     
     %set defaults if none given
+    
     for k = nargin:12
         switch k
             case 0
@@ -33,25 +35,26 @@ function centersAll = extraction(videoName, centersNum, iterate, diskR, diskN, h
             case 2
                 iterate = 400;
             case 3
-                diskR = 9;
-            case 4
-                diskN = 8;
-            case 5
-                houghSmall = 10;
-            case 6
-                houghLarge = 30;
-            case 7
-                houghSens = 0.8;
-            case 8
-                houghEdge = 0.1;
-            case 9
-                overlapOpt = 2;
-            case 10
-                overlapAmount = 10;
-            case 11
                 boolSave = 'y';
-            case 12
+            case 4
                 boolVid = 'y';
+            case 5
+                diskR = 9;
+            case 6
+                diskN = 8;
+            case 7
+                houghSmall = 10;
+            case 8
+                houghLarge = 30;
+            case 9
+                houghSens = 0.8;
+            case 10
+                houghEdge = 0.1;
+            case 11
+                overlapOpt = 2;
+            case 12
+                overlapAmount = 10;
+            
             otherwise
         end
     end
@@ -59,6 +62,8 @@ function centersAll = extraction(videoName, centersNum, iterate, diskR, diskN, h
     warning('off', 'MATLAB:MKDIR:DirectoryExists');
     mkdir('images');
     warning('off', 'images:imfindcircles:warnForLargeRadiusRange');
+    warning('off', 'images:initSize:adjustingMag');
+    
 
     video = VideoReader(videoName);
 

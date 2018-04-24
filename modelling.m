@@ -3,26 +3,46 @@
 %takes a matrix of centers and outputs a possible model of the cell
 %requires figure2html.m if exporting
 
+%videoName - Name of the initial video
 %centersAll - 3d matrix of point locations by framenumber
-%boolExport - 'y' if the model needs to be exported to a Matlab 3dx model
 %last - the reference frame number
+%autoSmall - lower bound of circle finding to auto determine model size
+    %Lower bound pixel size of cell radius
+%autoLarge - upper bound of circle finding to auto determine model size
+    %Upper bound pixel size of cell radius
+%manualCenter - use in case auto circle finding cant find the cell edge
+    %Manually specify center of cell pixel coordinate of X
+%manualRadius - use in case auto circle finding cant find the cell edge
+    %Manually specify cell radius
+%boolExport - 'y' if the model needs to be exported to a Matlab 3dx model
+    
 
 
-function modelling(centersMatrix, boolExport, last)
+function modelling(videoName, centersMatrix, last, autoSmall, autoLarge, manualCenter, manualRadius, boolExport)
 
-    if nargin > 2
-        error('myfuns:somefun2:TooManyInputs', 'requires at most 2 inputs');
+    if nargin > 8
+        error('myfuns:somefun2:TooManyInputs', 'requires at most 8 inputs');
     end
     
     %Set default parameters
-    for k = nargin:3
+    for k = nargin:7
         switch k
             case 0
-                centersMatrix = centersAll;
+                videoName = 'registered100.avi';
             case 1
-                boolExport = 'n';
+                centersMatrix = centersAll;
             case 2
                 last = 372;
+            case 3
+                autoSmall = 95;
+            case 4
+                autoLarge = 155;
+            case 5
+                manualCenter = 130;
+            case 6
+                manualRadius = 90;
+            case 7
+                boolExport = 'n';
             otherwise
         end
     end
@@ -31,16 +51,33 @@ function modelling(centersMatrix, boolExport, last)
     
    
     
-    %right now, these are set because the center pixel of the video is
-    %130,130 and the cell in the vid is ~90px wide
-    %TODO: Turn these into variables that change depending on the size of
-    %the video. Detect the outer cell edge in Extraction to determine radius
-    %automatically
-    cenX = 130;
-    cenY = 130;
-    cenZ = 130;
-    radius = 90;
+    %Attempt to automatically find the cell edge
+    video = VideoReader(videoName);
+    frame = readFrame(video);
+    frame = rgb2gray(frame);
+    adjFrame = imadjust(frame);
 
+    [centers, radii] = imfindcircles(adjFrame,[autoSmall autoLarge],'ObjectPolarity','bright', 'Sensitivity', 0.8, 'EdgeThreshold', 0.1);
+
+    num = numel(centers)/2;
+    if num ~= 0
+        %if it finds the cell edge in picture, use those to construct a 1:1 model
+        imshow(adjFrame);
+        hold on;
+        viscircles(centers, radii,'EdgeColor','b');
+        cen = centers(1,1);
+        cenX = cen;
+        cenY = cen;
+        cenZ = cen;
+        radius = radii;
+    else
+        %if it doesn't find the cell edge, use the manually specified
+            %center and radius
+        cenX = manualCenter;
+        cenY = manualCenter;
+        cenZ = manualCenter;
+        radius = manualRadius;
+    end
     
     xf = zeros(1,centersNum);
     yf = zeros(1,centersNum);
