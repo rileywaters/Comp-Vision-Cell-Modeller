@@ -3,5 +3,5 @@ function msphere=msphere(a, b, c)
     a = x*8 + a;
     b = y*8 + b;
     c = z*8 + c;
-    msphere = surface(a,b,c,'FaceColor', 'w','EdgeColor','w');
+    msphere = surface(a,b,c,'FaceColor', 'r','EdgeColor','w');
 end

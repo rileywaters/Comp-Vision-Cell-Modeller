@@ -1,10 +1,11 @@
 % Author: Riley Waters
-% Date: 2017-04-18
+% Date: 2018-04-18
 %takes in an input cell video and outputs a matrix giving coordinates of
 %each adhesion point. Options for making video. Requires RemoveOverLap.m
 
 %videoName - Name of the initial video
 %centersNum - Number of adhesion points on cell to look for
+%iterate - (optional) set manually the number of frames to process
 %diskR - (optional) Preprocessing disk radius
 %diskN - (optional) Preprocessing number of lines to approximate disk
 %houghSmall - (optional) minimum radius to search for circles
@@ -14,54 +15,54 @@
 %overlapOpt - (optional) select which type of overlap removal should occur
 %overlapAmount - (optional) select how much a spot overlaps before handling
 %boolSave - (optional) 'y' if program should save processed images
-%iterate - (optional) set manually the number of frames to process
 %boolVid - (optional) 'y' if program should construct video. Needs boolSave
 
-function centersAll = extraction(videoName, centersNum, diskR, diskN, houghSmall, houghLarge, houghSens, houghEdge, overlapOpt, overlapAmount, boolSave, iterate, boolVid)
+function centersAll = extraction(videoName, centersNum, iterate, diskR, diskN, houghSmall, houghLarge, houghSens, houghEdge, overlapOpt, overlapAmount, boolSave, boolVid)
 	
     if nargin > 13
         error('myfuns:somefun2:TooManyInputs', 'requires at most 13 inputs');
     end
     
     %set defaults if none given
-    for k = nargin:nargs-1
+    for k = nargin:12
         switch k
             case 0
-                videoName = 'video.avi';
+                videoName = 'registered100.avi';
             case 1
-                centersNum = 6;
+                 centersNum = 6;
             case 2
-                diskR = 9;
-            case 3
-                diskN = 8;
-            case 4
-                houghSmall = 10;
-            case 5
-                houghLarge = 30;
-            case 6
-                houghSens = 0.8;
-            case 7
-                houghEdge = 0.1;
-            case 8
-                overlapOpt = 2;
-            case 9
-                overlapAmount = 10;
-            case 10
-                boolSave = 'y';
-            case 11
                 iterate = 400;
+            case 3
+                diskR = 9;
+            case 4
+                diskN = 8;
+            case 5
+                houghSmall = 10;
+            case 6
+                houghLarge = 30;
+            case 7
+                houghSens = 0.8;
+            case 8
+                houghEdge = 0.1;
+            case 9
+                overlapOpt = 2;
+            case 10
+                overlapAmount = 10;
+            case 11
+                boolSave = 'y';
             case 12
                 boolVid = 'y';
             otherwise
         end
     end
 
-    mkdir(workingDir,'images');
+    warning('off', 'MATLAB:MKDIR:DirectoryExists');
+    mkdir('images');
     warning('off', 'images:imfindcircles:warnForLargeRadiusRange');
 
     video = VideoReader(videoName);
 
-    fname = 'C:\Users\Riley\Desktop\2017-2018 Homework\Thesis\Proj\images';
+  
     %best is ('disk', 9, 8)
     se = strel('disk',diskR,diskN);
 
@@ -98,7 +99,7 @@ function centersAll = extraction(videoName, centersNum, diskR, diskN, houghSmall
         end
     %     if there are circles, find and plot them
         if num ~= 0
-            %If theres more than 6, grab the top 6
+            %If theres more than centersNum, grab the top centersNum
             if num > centersNum
                 num = centersNum;
             end
@@ -124,7 +125,7 @@ function centersAll = extraction(videoName, centersNum, diskR, diskN, houghSmall
       %Save the image
         if boolSave == 'y'
           filename = [sprintf('%03d',ii) '.jpg'];
-          saveas(gcf,fullfile(fname, filename));
+          saveas(gcf,fullfile('images', filename));
         end
       %close all;
       if mod(ii,50) == 0
@@ -152,6 +153,7 @@ function centersAll = extraction(videoName, centersNum, diskR, diskN, houghSmall
         end
         fprintf('Video Created.');
         close(finalVid);
+        cd ..;
     end
 
 end

@@ -1,5 +1,5 @@
 % Author: Riley Waters
-% Date: 2017-04-18
+% Date: 2018-04-18
 %takes a matrix of centers and outputs a possible model of the cell
 %requires figure2html.m if exporting
 
@@ -7,47 +7,63 @@
 %boolExport - 'y' if the model needs to be exported to a Matlab 3dx model
 %last - the reference frame number
 
-function model = modelling(centersAll, boolExport, last)
+
+function modelling(centersMatrix, boolExport, last)
 
     if nargin > 2
         error('myfuns:somefun2:TooManyInputs', 'requires at most 2 inputs');
     end
     
-    if nargin == 1
-        boolExport = 'n';
-        last = 372;
+    %Set default parameters
+    for k = nargin:3
+        switch k
+            case 0
+                centersMatrix = centersAll;
+            case 1
+                boolExport = 'n';
+            case 2
+                last = 372;
+            otherwise
+        end
     end
     
-    model = figure;
+    centersNum = length(centersMatrix(:,1));
+    
+   
+    
+    %right now, these are set because the center pixel of the video is
+    %130,130 and the cell in the vid is ~90px wide
+    %TODO: Turn these into variables that change depending on the size of
+    %the video. Detect the outer cell edge in Extraction to determine radius
+    %automatically
     cenX = 130;
     cenY = 130;
     cenZ = 130;
     radius = 90;
 
-    x1 = centersAll(1,1,last);
-    y1 = centersAll(1,2,last);
-    z1 = sqrt((radius)^2-(x1-cenX)^2-(y1-cenY)^2)+cenZ;
-
-    x2 = centersAll(2,1,last);
-    y2 = centersAll(2,2,last);
-    z2 = sqrt((radius)^2-(x2-cenX)^2-(y2-cenY)^2)+cenZ;
-
-    x3 = centersAll(3,1,last);
-    y3 = centersAll(3,2,last);
-    z3 = sqrt((radius)^2-(x3-cenX)^2-(y3-cenY)^2)+cenZ;
-
-    x4 = centersAll(4,1,last);
-    y4 = centersAll(4,2,last);
-    z4 = -1 * sqrt((radius)^2-(x4-cenX)^2-(y4-cenY)^2)+cenZ;
-
-    x5 = centersAll(5,1,last);
-    y5 = centersAll(5,2,last);
-    z5 = -1 * sqrt((radius)^2-(x5-cenX)^2-(y5-cenY)^2)+cenZ;
-    %z5 = 49.4632;
-
-    x6 = centersAll(6,1,last);
-    y6 = centersAll(6,2,last);
-    z6 = sqrt((radius)^2-(x6-cenX)^2-(y6-cenY)^2)+cenZ;
+    
+    xf = zeros(1,centersNum);
+    yf = zeros(1,centersNum);
+    zf = zeros(1,centersNum);
+    
+    lastAfter = last+15;
+    for i = 1:centersNum
+        %point movement analysis and plotting
+        xf(i) = centersMatrix(i,1,last);
+        yf(i) = centersMatrix(i,2,last);
+        xAfter = centersMatrix(i,1,lastAfter);
+        yAfter = centersMatrix(i,2,lastAfter);
+        
+            if xAfter > xf(i) && yAfter > yf(i)
+                %move to bottom if x and y moved up
+                 zf(i) = -sqrt((radius)^2-(xf(i)-cenX)^2-(yf(i)-cenY)^2)+cenZ;
+            else
+                %otherwise place on top
+                zf(i) = sqrt((radius)^2-(xf(i)-cenX)^2-(yf(i)-cenY)^2)+cenZ;
+            end
+        
+       
+    end
 
 
     % Generate the x, y, and z data for the sphere
@@ -60,7 +76,7 @@ function model = modelling(centersAll, boolExport, last)
 
     figure
     lightGrey = 0.5*[1 1 1]; % It looks better if the lines are lighter
-    surface(x,y,z,'EdgeColor',lightGrey)
+    surface(x,y,z,'FaceColor', 'none','EdgeColor',lightGrey)
     hold on
 
 
@@ -79,31 +95,25 @@ function model = modelling(centersAll, boolExport, last)
     hold on;
 
     %add the points
-
-    %msphere(x1,y1,z1);
-    scatter3(x1,y1,z1,100,'MarkerEdgeColor','r')
-    scatter3(x1,y1,z1,30,'+', 'MarkerEdgeColor','r')
-    %msphere(x2,y2,z2);
-    scatter3(x2,y2,z2,100,'MarkerEdgeColor','r')
-    scatter3(x2,y2,z2,30,'+', 'MarkerEdgeColor','r')
-    %msphere(x3,y3,z3);
-    scatter3(x3,y3,z3,100,'MarkerEdgeColor','r')
-    scatter3(x3,y3,z3,30,'+', 'MarkerEdgeColor','r')
-    % msphere(x4,y4,z4);
-    scatter3(x4,y4,z4,100,'MarkerEdgeColor','r')
-    scatter3(x4,y4,z4,30,'+', 'MarkerEdgeColor','r')
-    %msphere(x5,y5,z5);
-    scatter3(x5,y5,z5,100,'MarkerEdgeColor','r')
-    scatter3(x5,y5,z5,30,'+', 'MarkerEdgeColor','r')
-    %msphere(x6,y6,z6);
-    scatter3(x6,y6,z6,100,'MarkerEdgeColor','r')
-    scatter3(x6,y6,z6,30,'+', 'MarkerEdgeColor','r')
+    for i = 1:centersNum
+        if boolExport == 'y'
+            %if exporting, you need physical markers and not just targets
+            msphere(xf(i),yf(i),zf(i));
+        end
+        scatter3(xf(i),yf(i),zf(i),100,'MarkerEdgeColor','r')
+        scatter3(xf(i),yf(i),zf(i),30,'+', 'MarkerEdgeColor','r')
+    end
+    
     axis tight;
     rotate3d on;
 
+    fprintf('Modelling Complete\n');
+    
     if boolExport == 'y'
+        %export to Matlab X3D Model format
         options=struct('output','both','height',500,'width',500,'headlight',true,'title','Matlab X3D Model','interactive',true,'embedimages',false);
         figure2xhtml('Model', options);
+        fprintf('Model Exported\n');
     end
 
 end

@@ -6,10 +6,11 @@
 
 function showMap(centersAll)
 
-    if nargin > 1
-        error('myfuns:somefun2:TooManyInputs', 'requires at most 1 input');
+    if nargin > 2
+        error('myfuns:somefun2:TooManyInputs', 'requires at most 2 inputs');
     end
     
+    ii = length(centersAll(1,1,:));
     xPlot = centersAll(:,1,:);
     yPlot = centersAll(:,2,:);
     zPlot = zeros(6,1,ii);
